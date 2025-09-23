@@ -1,0 +1,46 @@
+[Unit]
+Description=PDVIEW Orange Pi Service
+Documentation=https://github.com/seu-usuario/pdview-orange
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/pdview
+ExecStart=/home/pi/pdview/pdview
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Environment
+Environment="PORT=8080"
+Environment="GOGC=50"
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/pi/pdview/data
+
+# Resource limits
+MemoryMax=100M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pdview
+
+# Kill settings
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

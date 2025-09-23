@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=192, height=384, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDVIEW Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Arial Black', sans-serif;
+            position: relative;
+            width: 192px;
+            height: 384px;
+        }
+
+        #container {
+            position: relative;
+            width: 192px;
+            height: 384px;
+            background: #000;
+        }
+
+        #video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Overlay de preços */
+        .price-overlay {
+            position: absolute;
+            color: #FF0000;
+            font-weight: bold;
+            text-shadow:
+                2px 2px 4px rgba(0, 0, 0, 0.9),
+                -1px -1px 2px rgba(0, 0, 0, 0.9),
+                1px -1px 2px rgba(0, 0, 0, 0.9),
+                -1px 1px 2px rgba(0, 0, 0, 0.9);
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* Posicionamento do preço do Etanol */
+        #etanol-price {
+            top: 5px;
+            left: 95px;
+            font-size: 25px;
+        }
+
+        /* Posicionamento do preço da Gasolina */
+        #gasolina-price {
+            top: 53px;
+            left: 95px;
+            font-size: 25px;
+        }
+
+        /* Indicador de conexão */
+        .connection-status {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        .connection-status.offline {
+            background: #ff0000;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Mensagem de erro */
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        /* Loader durante carregamento */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 999;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        /* Fallback para quando não há vídeo */
+        .fallback-display {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .fallback-display.active {
+            display: flex;
+        }
+
+        .fallback-display h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .price-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin: 10px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .price-box h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .price-box .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffff00;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <!-- Video player -->
+        <video id="video-player" autoplay muted playsinline>
+            <source src="/videos/base.mp4" type="video/mp4">
+        </video>
+
+        <!-- Fallback display quando não há vídeo -->
+        <div class="fallback-display" id="fallback">
+            <h1>PREÇOS</h1>
+            <div class="price-box">
+                <h2>ETANOL</h2>
+                <div class="value" id="fallback-etanol">0.00</div>
+            </div>
+            <div class="price-box">
+                <h2>GASOLINA</h2>
+                <div class="value" id="fallback-gasolina">0.00</div>
+            </div>
+        </div>
+
+        <!-- Overlay de preços sobre o vídeo -->
+        <div id="etanol-price" class="price-overlay">0.00</div>
+        <div id="gasolina-price" class="price-overlay">0.00</div>
+
+        <!-- Indicador de conexão -->
+        <div class="connection-status" id="connection-status"></div>
+
+        <!-- Mensagem de erro -->
+        <div class="error-message" id="error-message">
+            Erro ao carregar dados
+        </div>
+
+        <!-- Loader -->
+        <div class="loader" id="loader">
+            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#fff" stroke-width="2" fill="none" opacity="0.3" />
+                <circle cx="20" cy="20" r="18" stroke="#ff0000" stroke-width="2" fill="none" stroke-dasharray="90"
+                    stroke-dashoffset="0" transform="rotate(-90 20 20)">
+                    <animate attributeName="stroke-dashoffset" from="90" to="0" dur="1s" repeatCount="indefinite" />
+                </circle>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        // Configurações
+        const CONFIG = {
+            updateInterval: 10000, // 10 segundos
+            retryInterval: 5000,   // 5 segundos para retry
+            maxRetries: 3,
+            apiEndpoint: '/api/prices'
+        };
+
+        // Estado da aplicação
+        let retryCount = 0;
+        let isOnline = true;
+        let updateTimer = null;
+        let videoLoaded = false;
+
+        // Elementos DOM
+        const video = document.getElementById('video-player');
+        const etanolPrice = document.getElementById('etanol-price');
+        const gasolinaPrice = document.getElementById('gasolina-price');
+        const fallbackEtanol = document.getElementById('fallback-etanol');
+        const fallbackGasolina = document.getElementById('fallback-gasolina');
+        const connectionStatus = document.getElementById('connection-status');
+        const errorMessage = document.getElementById('error-message');
+        const loader = document.getElementById('loader');
+        const fallbackDisplay = document.getElementById('fallback');
+
+        // Função para formatar preço
+        function formatPrice(price) {
+            return price.toFixed(2);
+        }
+
+        // Função para atualizar preços na tela
+        function updatePricesDisplay(etanol, gasolina) {
+            const formattedEtanol = formatPrice(etanol);
+            const formattedGasolina = formatPrice(gasolina);
+
+            // Atualizar overlay do vídeo
+            etanolPrice.textContent = formattedEtanol;
+            gasolinaPrice.textContent = formattedGasolina;
+
+            // Atualizar fallback display
+            fallbackEtanol.textContent = formattedEtanol;
+            fallbackGasolina.textContent = formattedGasolina;
+
+            // Salvar no localStorage para recuperação rápida
+            localStorage.setItem('lastPrices', JSON.stringify({
+                etanol: etanol,
+                gasolina: gasolina,
+                timestamp: new Date().toISOString()
+            }));
+        }
+
+        // Função para buscar preços da API
+        async function fetchPrices() {
+            try {
+                const response = await fetch(CONFIG.apiEndpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    cache: 'no-cache'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Atualizar display
+                updatePricesDisplay(data.etanol, data.gasolina);
+
+                // Reset retry count on success
+                retryCount = 0;
+                setOnlineStatus(true);
+                hideError();
+
+                return true;
+            } catch (error) {
+                console.error('Erro ao buscar preços:', error);
+                setOnlineStatus(false);
+                handleFetchError();
+                return false;
+            }
+        }
+
+        // Função para lidar com erros de fetch
+        function handleFetchError() {
+            retryCount++;
+
+            if (retryCount >= CONFIG.maxRetries) {
+                showError('Erro ao conectar com o servidor');
+
+                // Tentar recuperar últimos preços do localStorage
+                const lastPrices = localStorage.getItem('lastPrices');
+                if (lastPrices) {
+                    const prices = JSON.parse(lastPrices);
+                    updatePricesDisplay(prices.etanol, prices.gasolina);
+                    showError('Usando últimos preços salvos');
+                }
+            }
+
+            // Tentar novamente após intervalo de retry
+            clearTimeout(updateTimer);
+            updateTimer = setTimeout(() => {
+                fetchPrices();
+            }, CONFIG.retryInterval);
+        }
+
+        // Função para definir status de conexão
+        function setOnlineStatus(status) {
+            isOnline = status;
+            if (status) {
+                connectionStatus.classList.remove('offline');
+            } else {
+                connectionStatus.classList.add('offline');
+            }
+        }
+
+        // Função para mostrar erro
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Função para esconder erro
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Configurar loop do vídeo
+        function setupVideoLoop() {
+            // Tentar carregar o vídeo
+            video.addEventListener('loadeddata', () => {
+                videoLoaded = true;
+                fallbackDisplay.classList.remove('active');
+                console.log('Vídeo carregado com sucesso');
+            });
+
+            // Loop manual do vídeo
+            video.addEventListener('ended', () => {
+                video.currentTime = 0;
+                video.play().catch(err => {
+                    console.error('Erro ao reiniciar vídeo:', err);
+                });
+            });
+
+            // Tratamento de erros do vídeo
+            video.addEventListener('error', (e) => {
+                console.error('Erro no vídeo:', e);
+                videoLoaded = false;
+                fallbackDisplay.classList.add('active');
+
+                // Esconder overlay de preços quando em modo fallback
+                etanolPrice.style.display = 'none';
+                gasolinaPrice.style.display = 'none';
+            });
+
+            // Tentar iniciar o vídeo
+            video.play().catch(err => {
+                console.error('Erro ao iniciar vídeo:', err);
+                fallbackDisplay.classList.add('active');
+                etanolPrice.style.display = 'none';
+                gasolinaPrice.style.display = 'none';
+            });
+        }
+
+        // Função para iniciar loop de atualização
+        function startUpdateLoop() {
+            // Buscar preços imediatamente
+            fetchPrices();
+
+            // Configurar intervalo de atualização
+            setInterval(() => {
+                fetchPrices();
+            }, CONFIG.updateInterval);
+        }
+
+        // Função de inicialização
+        function initialize() {
+            console.log('Inicializando PDVIEW Player...');
+
+            // Mostrar loader inicialmente
+            loader.classList.add('active');
+
+            // Carregar últimos preços salvos (se existirem)
+            const lastPrices = localStorage.getItem('lastPrices');
+            if (lastPrices) {
+                const prices = JSON.parse(lastPrices);
+                updatePricesDisplay(prices.etanol, prices.gasolina);
+            }
+
+            // Configurar vídeo
+            setupVideoLoop();
+
+            // Iniciar loop de atualização
+            startUpdateLoop();
+
+            // Remover loader após 1 segundo
+            setTimeout(() => {
+                loader.classList.remove('active');
+            }, 1000);
+
+            // Verificar visibilidade da página (para economizar recursos)
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Página oculta - pausar vídeo
+                    video.pause();
+                } else {
+                    // Página visível - retomar vídeo
+                    if (videoLoaded) {
+                        video.play().catch(err => {
+                            console.error('Erro ao retomar vídeo:', err);
+                        });
+                    }
+                }
+            });
+
+            // Recarregar página em caso de erro fatal (após 1 hora)
+            setTimeout(() => {
+                if (!isOnline && retryCount >= CONFIG.maxRetries) {
+                    location.reload();
+                }
+            }, 3600000); // 1 hora
+        }
+
+        // Inicializar quando DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+
+        // Tratamento de erros globais
+        window.addEventListener('error', (event) => {
+            console.error('Erro global:', event.error);
+        });
+
+        // Prevenir zoom em dispositivos touch
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>

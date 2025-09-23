@@ -1,0 +1,39 @@
+# Binários
+pdview
+pdview-arm64
+pdview-arm32
+*.exe
+
+# Banco de dados
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Vídeos (geralmente grandes)
+videos/*.mp4
+videos/*.avi
+videos/*.mov
+videos/*.webm
+
+# Logs
+logs/
+*.log
+
+# Diretório de distribuição
+dist/
+
+# Arquivos temporários
+*.tmp
+*.bak
+*~
+.DS_Store
+
+# Go
+go.sum
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

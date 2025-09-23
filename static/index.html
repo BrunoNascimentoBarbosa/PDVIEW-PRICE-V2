@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDVIEW - Configuração de Preços</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <img src="/image/LOGO_PDVIEW-otimizada.png" alt="PDView Logo"
+                style="height: 100px; margin-bottom: 10px; mix-blend-mode: multiply; background: white; border-radius: 10px; padding: 10px;">
+        </header>
+
+        <main>
+            <!-- Preços Atuais -->
+            <section class="current-prices">
+                <h2>Preços Atuais</h2>
+                <div class="price-display">
+                    <div class="price-card">
+                        <h3>Etanol</h3>
+                        <span class="price-value" id="current-etanol">R$ 0,00</span>
+                    </div>
+                    <div class="price-card">
+                        <h3>Gasolina</h3>
+                        <span class="price-value" id="current-gasolina">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="last-update">
+                    Última atualização: <span id="last-update">--</span>
+                </div>
+            </section>
+
+            <!-- Formulário de Atualização -->
+            <section class="update-prices">
+                <h2>Atualizar Preços</h2>
+                <form id="price-form">
+                    <div class="form-group">
+                        <label for="etanol">
+                            Preço do Etanol (R$)
+                            <input type="number" id="etanol" name="etanol" step="0.01" min="0.01" max="999.99"
+                                placeholder="0.00" required>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gasolina">
+                            Preço da Gasolina (R$)
+                            <input type="number" id="gasolina" name="gasolina" step="0.01" min="0.01" max="999.99"
+                                placeholder="0.00" required>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        Atualizar Preços
+                    </button>
+                </form>
+            </section>
+
+            <!-- Links Úteis -->
+            <section class="links">
+                <h2>Links Rápidos</h2>
+                <div class="link-buttons">
+                    <a href="/player.html" target="_blank" class="btn-link">
+                        Abrir Player
+                    </a>
+                    <button id="btn-history" class="btn-link">
+                        Ver Histórico
+                    </button>
+                    <button id="btn-refresh" class="btn-link">
+                        Atualizar Página
+                    </button>
+                </div>
+            </section>
+
+            <!-- Histórico (inicialmente oculto) -->
+            <section class="history" id="history-section" style="display: none;">
+                <h2>Histórico de Preços</h2>
+                <div class="history-controls">
+                    <button id="btn-close-history" class="btn-secondary">Fechar</button>
+                </div>
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Etanol</th>
+                                <th>Gasolina</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <!-- Histórico será inserido aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Mensagens de Status -->
+        <div id="message" class="message"></div>
+
+        <footer>
+            <p>PDVIEW Otimizado para Orange Pi - v2.0</p>
+            <p id="system-status">Status: <span>Conectado</span></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
