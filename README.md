@@ -1,64 +1,52 @@
-# PDVIEW Orange Pi - Sistema Otimizado de Exibição de Preços
+# 🎯 PDVIEW v2.0 - Sistema de Preços para Postos
 
-Sistema leve e otimizado para exibição de preços de combustíveis em dispositivos Orange Pi Zero 2W e similares.
+Sistema ultra-leve e otimizado para exibir preços de combustíveis em Orange Pi, Raspberry Pi e similares.
+
+## ⚡ INSTALAÇÃO SUPER FÁCIL - 1 COMANDO APENAS!
+
+**Para usuários leigos - Cole no terminal do Orange Pi:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/BrunoNascimentoBarbosa/PDVIEW-PRICE-V2/main/setup.sh | bash
+```
+
+**✨ Pronto! O script instala tudo automaticamente:**
+- ✅ Dependências do sistema
+- ✅ Go (linguagem de programação)
+- ✅ Projeto completo
+- ✅ Configuração de serviço
+- ✅ Inicialização automática
+
+**📖 [Ver guia detalhado de instalação](INSTALACAO.md)**
+
+---
 
 ## 🚀 Características
 
-- **Ultra Leve**: Apenas ~10MB de RAM (vs ~80MB do sistema anterior)
-- **Servidor Único**: Aplicação Go compilada em binário único
-- **Performance Otimizada**: Especialmente para dispositivos ARM de baixo poder
-- **Interface Responsiva**: Admin e player funcionam em qualquer dispositivo
-- **Video Loop Estável**: Implementação otimizada para ARM sem travamentos
-- **Auto-recuperação**: Serviço systemd com restart automático
+- **Ultra Leve**: 10MB RAM (87% menos que v1)
+- **Servidor Único**: Go binário otimizado
+- **Video Loop Estável**: Sem travamentos ARM
+- **Interface Responsiva**: Admin + Player
+- **Auto-restart**: Recuperação automática
+- **Instalação 1-click**: Script automatizado
 
-## 📋 Requisitos
+## 📱 Como Usar Após Instalação
 
-### Orange Pi / Raspberry Pi
-- Orange Pi Zero 2W ou similar (ARM64/ARMv7)
-- Sistema Operacional: Armbian, Raspbian ou Ubuntu
-- RAM mínima: 256MB (recomendado 512MB+)
-- Armazenamento: 1GB livre
+1. **Acesse a interface**: `http://IP-DO-ORANGE-PI:8080`
+2. **Configure preços** de Etanol e Gasolina
+3. **Visualize no player**: `/player.html`
 
-### Desenvolvimento (PC/Mac)
-- Go 1.19+ (para compilação)
-- FFmpeg (para otimização de vídeos)
-- SQLite3
-
-## 🔧 Instalação Rápida
-
-### 1. No seu PC/Mac (Compilação)
+## 🎛️ Controle do Sistema
 
 ```bash
-# Clonar repositório
-git clone <seu-repositorio>
-cd pdview-orange
+cd ~/pdview
 
-# Instalar Go (se necessário)
-# macOS: brew install go
-# Linux: sudo apt install golang
-
-# Compilar para Orange Pi
-chmod +x build.sh
-./build.sh
-# Escolha opção 2 (ARM64) ou 3 (ARM32)
-```
-
-### 2. No Orange Pi (Instalação)
-
-```bash
-# Copiar arquivos para o Orange Pi
-scp -r pdview-orange/* pi@<IP-ORANGE-PI>:/home/pi/pdview-temp/
-
-# No Orange Pi
-cd /home/pi/pdview-temp
-chmod +x install.sh
-./install.sh
-
-# O instalador irá:
-# - Verificar dependências
-# - Criar estrutura de diretórios
-# - Configurar serviço systemd
-# - Iniciar o sistema
+./control.sh start     # Iniciar
+./control.sh stop      # Parar
+./control.sh restart   # Reiniciar
+./control.sh status    # Ver status
+./control.sh logs      # Ver logs
+./control.sh update    # Atualizar versão
 ```
 
 ## 🎥 Preparação de Vídeos
