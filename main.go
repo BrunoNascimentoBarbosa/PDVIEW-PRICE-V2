@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -91,7 +93,7 @@ func handleGetPrices(w http.ResponseWriter, r *http.Request) {
 
 	// Adicionar headers de cache para reduzir requisições
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "max-age=5")
+	w.Header().Set("Cache-Control", "max-age=10")
 
 	json.NewEncoder(w).Encode(price)
 }
@@ -183,6 +185,22 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func getLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "localhost"
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil && !strings.HasPrefix(ipnet.IP.String(), "169.254") {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return "localhost"
+}
+
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -218,15 +236,25 @@ func main() {
 	videoServer := http.FileServer(http.Dir("./videos/"))
 	mux.Handle("/videos/", http.StripPrefix("/videos/", videoServer))
 
-	// Servidor com logging
-	server := loggingMiddleware(mux)
+	// Configurar servidor com timeouts para Orange Pi
+	server := &http.Server{
+		Addr:         "0.0.0.0:8080",
+		Handler:      loggingMiddleware(mux),
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 
 	port := ":8080"
-	log.Printf("PDVIEW Server iniciado na porta %s", port)
-	log.Printf("Interface de configuração: http://localhost%s", port)
-	log.Printf("Player: http://localhost%s/player.html", port)
+	localIP := getLocalIP()
 
-	if err := http.ListenAndServe(port, server); err != nil {
+	log.Printf("PDVIEW Server iniciado na porta %s", port)
+	log.Printf("Acesso local: http://localhost%s", port)
+	log.Printf("Acesso via WiFi: http://%s%s", localIP, port)
+	log.Printf("Interface de configuração: http://%s%s", localIP, port)
+	log.Printf("Player: http://%s%s/player.html", localIP, port)
+
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Erro ao iniciar servidor:", err)
 	}
 }
