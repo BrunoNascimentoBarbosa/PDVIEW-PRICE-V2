@@ -133,24 +133,43 @@ section h2 {
     gap: 8px;
 }
 
-input[type="number"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background: white;
+/* Input Fields - Estilo Principal */
+.form-group input,
+.form-group input[type="text"],
+input#etanol,
+input#gasolina,
+form input {
+    width: 100% !important;
+    padding: 20px 18px !important;
+    border: 3px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    background: #ffffff !important;
+    min-height: 60px !important;
+    height: 60px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    color: #111827 !important;
+    font-family: inherit !important;
 }
 
-input[type="number"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.form-group input:focus,
+input#etanol:focus,
+input#gasolina:focus,
+form input:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
+    transform: scale(1.02) !important;
 }
 
-input[type="number"]:invalid {
-    border-color: var(--error-color);
+.form-group input:invalid,
+input#etanol:invalid,
+input#gasolina:invalid,
+form input:invalid {
+    border-color: #ef4444 !important;
 }
 
 /* Buttons */

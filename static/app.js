@@ -94,14 +94,18 @@ async function fetchPrices() {
 
 async function updatePrices(etanol, gasolina) {
     try {
+        // Normalizar valores: converter vírgula para ponto
+        const etanolNorm = etanol.replace(',', '.');
+        const gasolinaNorm = gasolina.replace(',', '.');
+
         const response = await fetch(`${CONFIG.apiBase}/api/prices/update`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                etanol: parseFloat(etanol),
-                gasolina: parseFloat(gasolina),
+                etanol: parseFloat(etanolNorm),
+                gasolina: parseFloat(gasolinaNorm),
             }),
         });
 
@@ -146,14 +150,6 @@ function updatePricesDisplay(data) {
     elements.currentEtanol.textContent = formatCurrency(data.etanol);
     elements.currentGasolina.textContent = formatCurrency(data.gasolina);
     elements.lastUpdate.textContent = formatDateTime(data.timestamp);
-
-    // Atualizar inputs com valores atuais (para facilitar edição)
-    if (!elements.etanolInput.value) {
-        elements.etanolInput.value = data.etanol.toFixed(2);
-    }
-    if (!elements.gasolinaInput.value) {
-        elements.gasolinaInput.value = data.gasolina.toFixed(2);
-    }
 }
 
 function displayHistory(history) {

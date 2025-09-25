@@ -6,6 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDVIEW - Configuração de Preços</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilo específico para inputs de preço */
+        #etanol, #gasolina {
+            width: 100% !important;
+            padding: 20px 18px !important;
+            border: 3px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 1.4rem !important;
+            font-weight: 600 !important;
+            background: #ffffff !important;
+            min-height: 65px !important;
+            height: 65px !important;
+            text-align: left !important;
+            box-sizing: border-box !important;
+            color: #111827 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        #etanol:focus, #gasolina:focus {
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -41,16 +65,24 @@
                     <div class="form-group">
                         <label for="etanol">
                             Preço do Etanol (R$)
-                            <input type="number" id="etanol" name="etanol" step="0.01" min="0.01" max="999.99"
-                                placeholder="0.00" required>
+                            <input type="text" id="etanol" name="etanol"
+                                pattern="[0-9]+([.,][0-9]{1,2})?"
+                                placeholder=""
+                                inputmode="decimal"
+                                title="Digite um preço válido (ex: 3.79 ou 3,79)"
+                                required>
                         </label>
                     </div>
 
                     <div class="form-group">
                         <label for="gasolina">
                             Preço da Gasolina (R$)
-                            <input type="number" id="gasolina" name="gasolina" step="0.01" min="0.01" max="999.99"
-                                placeholder="0.00" required>
+                            <input type="text" id="gasolina" name="gasolina"
+                                pattern="[0-9]+([.,][0-9]{1,2})?"
+                                placeholder=""
+                                inputmode="decimal"
+                                title="Digite um preço válido (ex: 5.99 ou 5,99)"
+                                required>
                         </label>
                     </div>
 
