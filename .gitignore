@@ -9,11 +9,7 @@ data/*.db
 data/*.db-shm
 data/*.db-wal
 
-# Vídeos (geralmente grandes)
-videos/*.mp4
-videos/*.avi
-videos/*.mov
-videos/*.webm
+
 
 # Logs
 logs/
