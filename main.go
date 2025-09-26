@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -26,7 +28,19 @@ type PriceUpdate struct {
 	Gasolina float64 `json:"gasolina"`
 }
 
+type VideoInfo struct {
+	Name     string `json:"name"`
+	Path     string `json:"path"`
+	Size     int64  `json:"size"`
+	IsActive bool   `json:"is_active"`
+}
+
+type VideoSelection struct {
+	VideoName string `json:"video_name"`
+}
+
 var db *sql.DB
+var activeVideo string = "base.mp4" // vídeo padrão
 
 func initDB() *sql.DB {
 	// Criar diretório data se não existir
@@ -170,6 +184,141 @@ func handlePriceHistory(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(prices)
 }
 
+func handleListVideos(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	videosDir := "./videos"
+	files, err := os.ReadDir(videosDir)
+	if err != nil {
+		http.Error(w, "Erro ao ler diretório de vídeos", http.StatusInternalServerError)
+		return
+	}
+
+	var videos []VideoInfo
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		// Verificar se é arquivo de vídeo
+		ext := filepath.Ext(file.Name())
+		if ext != ".mp4" && ext != ".avi" && ext != ".mov" && ext != ".webm" {
+			continue
+		}
+
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+
+		video := VideoInfo{
+			Name:     file.Name(),
+			Path:     "/videos/" + file.Name(),
+			Size:     info.Size(),
+			IsActive: file.Name() == activeVideo,
+		}
+		videos = append(videos, video)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(videos)
+}
+
+func handleSelectVideo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var selection VideoSelection
+	if err := json.NewDecoder(r.Body).Decode(&selection); err != nil {
+		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		return
+	}
+
+	// Verificar se o arquivo existe
+	videoPath := filepath.Join("./videos", selection.VideoName)
+	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
+		http.Error(w, "Vídeo não encontrado", http.StatusNotFound)
+		return
+	}
+
+	// Atualizar vídeo ativo
+	activeVideo = selection.VideoName
+	log.Printf("Vídeo ativo alterado para: %s", activeVideo)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":      true,
+		"message":      "Vídeo selecionado com sucesso",
+		"active_video": activeVideo,
+	})
+}
+
+func handleUploadVideo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Limitar tamanho do upload (100MB)
+	r.ParseMultipartForm(100 << 20)
+
+	file, handler, err := r.FormFile("video")
+	if err != nil {
+		http.Error(w, "Erro ao receber arquivo", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Verificar extensão
+	ext := filepath.Ext(handler.Filename)
+	if ext != ".mp4" && ext != ".avi" && ext != ".mov" && ext != ".webm" {
+		http.Error(w, "Formato de vídeo não suportado", http.StatusBadRequest)
+		return
+	}
+
+	// Criar arquivo de destino
+	dst, err := os.Create(filepath.Join("./videos", handler.Filename))
+	if err != nil {
+		http.Error(w, "Erro ao salvar arquivo", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	// Copiar arquivo
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, "Erro ao salvar arquivo", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Vídeo enviado com sucesso: %s", handler.Filename)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":  true,
+		"message":  "Vídeo enviado com sucesso",
+		"filename": handler.Filename,
+	})
+}
+
+func handleActiveVideo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"active_video": activeVideo,
+		"video_path":   "/videos/" + activeVideo,
+	})
+}
+
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -221,6 +370,12 @@ func main() {
 	mux.HandleFunc("/api/prices", enableCORS(handleGetPrices))
 	mux.HandleFunc("/api/prices/update", enableCORS(handleUpdatePrices))
 	mux.HandleFunc("/api/prices/history", enableCORS(handlePriceHistory))
+
+	// Video endpoints
+	mux.HandleFunc("/api/videos", enableCORS(handleListVideos))
+	mux.HandleFunc("/api/videos/select", enableCORS(handleSelectVideo))
+	mux.HandleFunc("/api/videos/upload", enableCORS(handleUploadVideo))
+	mux.HandleFunc("/api/videos/active", enableCORS(handleActiveVideo))
 
 	// Health check
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

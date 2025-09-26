@@ -21,7 +21,14 @@ const elements = {
     historyBody: document.getElementById('history-body'),
     btnHistory: document.getElementById('btn-history'),
     btnCloseHistory: document.getElementById('btn-close-history'),
+    btnVideos: document.getElementById('btn-videos'),
     btnRefresh: document.getElementById('btn-refresh'),
+    videoModal: document.getElementById('video-modal'),
+    btnCloseModal: document.getElementById('btn-close-modal'),
+    videosList: document.getElementById('videos-list'),
+    uploadForm: document.getElementById('upload-form'),
+    videoFile: document.getElementById('video-file'),
+    uploadText: document.getElementById('upload-text'),
     message: document.getElementById('message'),
     systemStatus: document.getElementById('system-status'),
 };
@@ -143,6 +150,74 @@ async function fetchHistory() {
     }
 }
 
+async function fetchVideos() {
+    try {
+        const response = await fetch(`${CONFIG.apiBase}/api/videos`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar vídeos:', error);
+        showMessage('Erro ao carregar vídeos', 'error');
+        return [];
+    }
+}
+
+async function selectVideo(videoName) {
+    try {
+        const response = await fetch(`${CONFIG.apiBase}/api/videos/select`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                video_name: videoName
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao selecionar vídeo:', error);
+        throw error;
+    }
+}
+
+async function uploadVideo(file) {
+    try {
+        const formData = new FormData();
+        formData.append('video', file);
+
+        const response = await fetch(`${CONFIG.apiBase}/api/videos/upload`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao enviar vídeo:', error);
+        throw error;
+    }
+}
+
 // Funções de UI
 function updatePricesDisplay(data) {
     if (!data) return;
@@ -170,6 +245,45 @@ function displayHistory(history) {
         `;
         tbody.appendChild(row);
     });
+}
+
+function displayVideos(videos) {
+    const container = elements.videosList || document.getElementById('videos-list');
+
+    if (!container) {
+        console.error('Container de vídeos não encontrado!');
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (!videos || videos.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">Nenhum vídeo disponível</p>';
+        return;
+    }
+
+    videos.forEach(video => {
+        const videoCard = document.createElement('div');
+        videoCard.className = `video-card ${video.is_active ? 'active' : ''}`;
+        videoCard.innerHTML = `
+            <h4>${video.name}</h4>
+            <div class="video-info">${formatFileSize(video.size)}</div>
+            <div class="video-status ${video.is_active ? 'active' : 'inactive'}">
+                ${video.is_active ? 'ATIVO' : 'INATIVO'}
+            </div>
+        `;
+
+        videoCard.addEventListener('click', () => handleVideoSelect(video.name));
+        container.appendChild(videoCard);
+    });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 // Event Handlers
@@ -224,15 +338,191 @@ function handleRefresh() {
     location.reload();
 }
 
+async function handleShowVideos() {
+    console.log('Abrindo modal de vídeos...');
+
+    // Buscar o modal diretamente se não estiver nos elementos
+    const modal = elements.videoModal || document.getElementById('video-modal');
+
+    if (!modal) {
+        console.error('Modal de vídeos não encontrado!');
+        showMessage('Erro ao abrir modal de vídeos', 'error');
+        return;
+    }
+
+    // Garantir que o modal seja exibido
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+
+    try {
+        const videos = await fetchVideos();
+        console.log('Vídeos carregados:', videos);
+        displayVideos(videos);
+    } catch (error) {
+        console.error('Erro ao carregar vídeos:', error);
+        showMessage('Erro ao carregar lista de vídeos', 'error');
+    }
+}
+
+function handleCloseModal() {
+    const modal = elements.videoModal || document.getElementById('video-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function handleVideoSelect(videoName) {
+    try {
+        await selectVideo(videoName);
+        showMessage(`Vídeo "${videoName}" selecionado com sucesso!`, 'success');
+
+        // Atualizar lista de vídeos
+        const videos = await fetchVideos();
+        displayVideos(videos);
+    } catch (error) {
+        showMessage('Erro ao selecionar vídeo', 'error');
+    }
+}
+
+async function handleUploadVideo(event) {
+    event.preventDefault();
+
+    const file = elements.videoFile.files[0];
+    if (!file) {
+        showMessage('Por favor, selecione um arquivo', 'error');
+        return;
+    }
+
+    // Validar tamanho (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+        showMessage('Arquivo muito grande. Máximo 100MB', 'error');
+        return;
+    }
+
+    // Validar formato
+    const validTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/webm'];
+    if (!validTypes.includes(file.type)) {
+        showMessage('Formato não suportado. Use MP4, AVI, MOV ou WEBM', 'error');
+        return;
+    }
+
+    // Mostrar progresso
+    elements.uploadText.textContent = 'Enviando...';
+    const submitButton = elements.uploadForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
+    try {
+        await uploadVideo(file);
+        showMessage('Vídeo enviado com sucesso!', 'success');
+
+        // Limpar formulário
+        elements.uploadForm.reset();
+
+        // Atualizar lista de vídeos
+        const videos = await fetchVideos();
+        displayVideos(videos);
+    } catch (error) {
+        showMessage('Erro ao enviar vídeo', 'error');
+    } finally {
+        elements.uploadText.textContent = 'Enviar Vídeo';
+        submitButton.disabled = false;
+    }
+}
+
 // Função de inicialização
 async function initialize() {
     console.log('Inicializando aplicação PDVIEW...');
+
+    // Debug: verificar todos os elementos
+    console.log('Elementos encontrados:', {
+        btnVideos: !!document.getElementById('btn-videos'),
+        videoModal: !!document.getElementById('video-modal'),
+        uploadForm: !!document.getElementById('upload-form'),
+        btnCloseModal: !!document.getElementById('btn-close-modal')
+    });
 
     // Configurar event listeners
     elements.priceForm.addEventListener('submit', handleFormSubmit);
     elements.btnHistory.addEventListener('click', handleShowHistory);
     elements.btnCloseHistory.addEventListener('click', handleCloseHistory);
+
+    // Verificar se o botão de vídeos existe
+    const btnVideos = document.getElementById('btn-videos');
+    if (btnVideos) {
+        console.log('Botão de vídeos encontrado, registrando listener...');
+        btnVideos.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botão de vídeos clicado!');
+            handleShowVideos();
+        });
+    } else {
+        console.error('ERRO: Botão btn-videos não encontrado no DOM!');
+        // Tentar novamente após o DOM estar completamente carregado
+        setTimeout(() => {
+            const btnVideosRetry = document.getElementById('btn-videos');
+            if (btnVideosRetry) {
+                console.log('Botão de vídeos encontrado na segunda tentativa!');
+                btnVideosRetry.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Botão de vídeos clicado (retry)!');
+                    handleShowVideos();
+                });
+            } else {
+                console.error('ERRO: Botão btn-videos não encontrado mesmo após retry!');
+            }
+        }, 1000);
+    }
+
+    // Configurar botão fechar modal
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Fechando modal...');
+            handleCloseModal();
+        });
+    }
+
+    if (elements.uploadForm) {
+        elements.uploadForm.addEventListener('submit', handleUploadVideo);
+    }
+
     elements.btnRefresh.addEventListener('click', handleRefresh);
+
+    // Fechar modal ao clicar fora
+    if (elements.videoModal) {
+        elements.videoModal.addEventListener('click', (e) => {
+            if (e.target === elements.videoModal) {
+                handleCloseModal();
+            }
+        });
+    }
+
+    // Drag and drop para upload
+    if (elements.uploadForm) {
+        const uploadArea = elements.uploadForm.querySelector('.upload-area');
+        if (uploadArea) {
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    elements.videoFile.files = files;
+                }
+            });
+        }
+    }
 
     // Validação em tempo real dos inputs
     [elements.etanolInput, elements.gasolinaInput].forEach(input => {
@@ -309,9 +599,9 @@ if (document.readyState === 'loading') {
     initialize();
 }
 
-// Service Worker para funcionar offline (opcional)
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
-        console.log('Service Worker não registrado:', err);
-    });
-}
+// Service Worker comentado por enquanto (causando erro 404)
+// if ('serviceWorker' in navigator) {
+//     navigator.serviceWorker.register('/sw.js').catch(err => {
+//         console.log('Service Worker não registrado:', err);
+//     });
+// }

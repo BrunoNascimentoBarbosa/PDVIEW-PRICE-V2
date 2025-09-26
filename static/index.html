@@ -29,6 +29,300 @@
             border-color: #2563eb !important;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
         }
+
+        /* Estilos para o Modal de Vídeos */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 2px solid #e5e7eb;
+            background: linear-gradient(to right, #f8f9fa, #ffffff);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-close:hover {
+            background: #f0f0f0;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .modal-section {
+            padding: 25px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-section:last-child {
+            border-bottom: none;
+        }
+
+        .modal-section h3 {
+            margin: 0 0 20px 0;
+            color: #444;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        /* Grid de Vídeos */
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .video-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-preview .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+
+        .video-preview .play-icon::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 12px solid #333;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            margin-left: 3px;
+        }
+
+        .video-card:hover .play-icon {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .video-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.2);
+        }
+
+        .video-card.active {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
+        }
+
+        .video-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .video-card .video-info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .video-card .video-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .video-status.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .video-status.inactive {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #2563eb;
+            background: #f0f7ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #2563eb;
+            background: #e0f2fe;
+            border-width: 3px;
+        }
+
+        #video-file {
+            display: none;
+        }
+
+        .upload-label {
+            display: block;
+            cursor: pointer;
+            color: #444;
+        }
+
+        .upload-label span {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .upload-label small {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        #upload-form button[type="submit"] {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        #upload-form button[type="submit"]:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        #upload-form button[type="submit"]:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Responsivo */
+        @media (max-width: 640px) {
+            .modal-content {
+                width: 95%;
+                margin: 10px;
+            }
+
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-header h2 {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 </head>
 
@@ -102,6 +396,9 @@
                     <button id="btn-history" class="btn-link">
                         Ver Histórico
                     </button>
+                    <button id="btn-videos" class="btn-link">
+                        Trocar Vídeo
+                    </button>
                     <button id="btn-refresh" class="btn-link">
                         Atualizar Página
                     </button>
@@ -129,6 +426,41 @@
                     </table>
                 </div>
             </section>
+
+            <!-- Modal de Vídeos (inicialmente oculto) -->
+            <div class="modal" id="video-modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Gerenciar Vídeos</h2>
+                        <button id="btn-close-modal" class="btn-close">&times;</button>
+                    </div>
+
+                    <!-- Lista de vídeos -->
+                    <div class="modal-section">
+                        <h3>Vídeos Disponíveis</h3>
+                        <div id="videos-list" class="videos-grid">
+                            <!-- Vídeos serão inseridos aqui -->
+                        </div>
+                    </div>
+
+                    <!-- Upload de novo vídeo -->
+                    <div class="modal-section">
+                        <h3>Enviar Novo Vídeo</h3>
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <div class="upload-area">
+                                <input type="file" id="video-file" name="video" accept="video/*" required>
+                                <label for="video-file" class="upload-label">
+                                    <span>Clique para selecionar ou arraste o vídeo aqui</span>
+                                    <small>Formatos suportados: MP4, AVI, MOV, WEBM (máx. 100MB)</small>
+                                </label>
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <span id="upload-text">Enviar Vídeo</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Mensagens de Status -->
@@ -141,6 +473,213 @@
     </div>
 
     <script src="app.js"></script>
+
+    <!-- Script adicional para garantir que o modal funcione -->
+    <script>
+        // Aguardar o DOM carregar completamente
+        window.addEventListener('load', function() {
+            console.log('Página completamente carregada - configurando modal de vídeos...');
+
+            const btnVideos = document.getElementById('btn-videos');
+            const videoModal = document.getElementById('video-modal');
+            const btnCloseModal = document.getElementById('btn-close-modal');
+
+            if (btnVideos && videoModal) {
+                console.log('Elementos do modal encontrados!');
+
+                // Adicionar listener para abrir modal
+                btnVideos.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Abrindo modal de vídeos...');
+                    videoModal.style.display = 'flex';
+
+                    // Carregar lista de vídeos
+                    fetch('/api/videos')
+                        .then(response => response.json())
+                        .then(videos => {
+                            console.log('Vídeos carregados:', videos);
+                            const container = document.getElementById('videos-list');
+                            if (container) {
+                                container.innerHTML = '';
+
+                                if (videos && videos.length > 0) {
+                                    videos.forEach(video => {
+                                        const videoCard = document.createElement('div');
+                                        videoCard.className = `video-card ${video.is_active ? 'active' : ''}`;
+
+                                        // Criar elemento de prévia com vídeo
+                                        const previewHtml = `
+                                            <div class="video-preview">
+                                                <video src="${video.path}" muted preload="metadata"></video>
+                                                <div class="play-icon"></div>
+                                            </div>
+                                        `;
+
+                                        videoCard.innerHTML = `
+                                            ${previewHtml}
+                                            <h4>${video.name}</h4>
+                                            <div class="video-info">${(video.size / (1024 * 1024)).toFixed(2)} MB</div>
+                                            <div class="video-status ${video.is_active ? 'active' : 'inactive'}">
+                                                ${video.is_active ? 'ATIVO' : 'INATIVO'}
+                                            </div>
+                                        `;
+
+                                        // Adicionar hover para mostrar preview
+                                        const videoElement = videoCard.querySelector('video');
+                                        videoCard.addEventListener('mouseenter', function() {
+                                            if (videoElement) {
+                                                videoElement.currentTime = 0;
+                                                videoElement.play().catch(() => {});
+                                            }
+                                        });
+
+                                        videoCard.addEventListener('mouseleave', function() {
+                                            if (videoElement) {
+                                                videoElement.pause();
+                                                videoElement.currentTime = 0;
+                                            }
+                                        });
+
+                                        videoCard.addEventListener('click', function() {
+                                            // Mostrar confirmação antes de trocar
+                                            if (video.is_active) {
+                                                alert('Este vídeo já está ativo!');
+                                                return;
+                                            }
+
+                                            if (confirm(`Deseja definir "${video.name}" como vídeo padrão?`)) {
+                                                // Feedback visual imediato
+                                                videoCard.style.opacity = '0.5';
+                                                videoCard.style.pointerEvents = 'none';
+
+                                                // Selecionar vídeo
+                                                fetch('/api/videos/select', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({
+                                                        video_name: video.name
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    // Mostrar mensagem de sucesso
+                                                    const successMsg = document.createElement('div');
+                                                    successMsg.style.cssText = `
+                                                        position: fixed;
+                                                        top: 20px;
+                                                        left: 50%;
+                                                        transform: translateX(-50%);
+                                                        background: #10b981;
+                                                        color: white;
+                                                        padding: 15px 30px;
+                                                        border-radius: 8px;
+                                                        font-weight: 500;
+                                                        z-index: 10000;
+                                                        animation: slideDown 0.3s ease;
+                                                    `;
+                                                    successMsg.textContent = `✓ Vídeo "${video.name}" definido como padrão!`;
+                                                    document.body.appendChild(successMsg);
+
+                                                    // Recarregar após 1.5 segundos
+                                                    setTimeout(() => {
+                                                        window.location.reload();
+                                                    }, 1500);
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erro ao selecionar vídeo:', error);
+                                                    alert('Erro ao selecionar vídeo');
+                                                    videoCard.style.opacity = '1';
+                                                    videoCard.style.pointerEvents = 'auto';
+                                                });
+                                            }
+                                        });
+
+                                        container.appendChild(videoCard);
+                                    });
+                                } else {
+                                    container.innerHTML = '<p style="text-align: center; color: #666;">Nenhum vídeo disponível</p>';
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao carregar vídeos:', error);
+                        });
+                });
+
+                // Adicionar listener para fechar modal
+                if (btnCloseModal) {
+                    btnCloseModal.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        videoModal.style.display = 'none';
+                    });
+                }
+
+                // Fechar modal ao clicar fora
+                videoModal.addEventListener('click', function(e) {
+                    if (e.target === videoModal) {
+                        videoModal.style.display = 'none';
+                    }
+                });
+
+                // Upload de vídeo
+                const uploadForm = document.getElementById('upload-form');
+                if (uploadForm) {
+                    uploadForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+
+                        const fileInput = document.getElementById('video-file');
+                        const file = fileInput.files[0];
+
+                        if (!file) {
+                            alert('Por favor, selecione um arquivo');
+                            return;
+                        }
+
+                        if (file.size > 100 * 1024 * 1024) {
+                            alert('Arquivo muito grande. Máximo 100MB');
+                            return;
+                        }
+
+                        const formData = new FormData();
+                        formData.append('video', file);
+
+                        const uploadBtn = uploadForm.querySelector('button[type="submit"]');
+                        const uploadText = document.getElementById('upload-text');
+
+                        uploadText.textContent = 'Enviando...';
+                        uploadBtn.disabled = true;
+
+                        fetch('/api/videos/upload', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            alert('Vídeo enviado com sucesso!');
+                            uploadForm.reset();
+                            window.location.reload(); // Recarregar para atualizar lista
+                        })
+                        .catch(error => {
+                            console.error('Erro ao enviar vídeo:', error);
+                            alert('Erro ao enviar vídeo');
+                        })
+                        .finally(() => {
+                            uploadText.textContent = 'Enviar Vídeo';
+                            uploadBtn.disabled = false;
+                        });
+                    });
+                }
+
+            } else {
+                console.error('Elementos do modal não encontrados!', {
+                    btnVideos: !!btnVideos,
+                    videoModal: !!videoModal
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -175,7 +175,7 @@
     <div id="container">
         <!-- Video player -->
         <video id="video-player" autoplay muted playsinline>
-            <source src="/videos/base.mp4" type="video/mp4">
+            <source id="video-source" src="/videos/base.mp4" type="video/mp4">
         </video>
 
         <!-- Fallback display quando não há vídeo -->
@@ -221,7 +221,8 @@
             updateInterval: 10000, // 10 segundos
             retryInterval: 5000,   // 5 segundos para retry
             maxRetries: 3,
-            apiEndpoint: '/api/prices'
+            apiEndpoint: '/api/prices',
+            videoEndpoint: '/api/videos/active'
         };
 
         // Estado da aplicação
@@ -232,6 +233,7 @@
 
         // Elementos DOM
         const video = document.getElementById('video-player');
+        const videoSource = document.getElementById('video-source');
         const etanolPrice = document.getElementById('etanol-price');
         const gasolinaPrice = document.getElementById('gasolina-price');
         const fallbackEtanol = document.getElementById('fallback-etanol');
@@ -348,8 +350,37 @@
             errorMessage.style.display = 'none';
         }
 
+        // Função para carregar vídeo ativo
+        async function loadActiveVideo() {
+            try {
+                const response = await fetch(CONFIG.videoEndpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    cache: 'no-cache'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const videoPath = data.video_path;
+
+                    if (videoSource.src !== window.location.origin + videoPath) {
+                        console.log('Carregando novo vídeo:', videoPath);
+                        videoSource.src = videoPath;
+                        video.load(); // Recarregar o vídeo
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar vídeo ativo:', error);
+            }
+        }
+
         // Configurar loop do vídeo
         function setupVideoLoop() {
+            // Carregar vídeo ativo inicialmente
+            loadActiveVideo();
+
             // Tentar carregar o vídeo
             video.addEventListener('loadeddata', () => {
                 videoLoaded = true;
@@ -393,6 +424,8 @@
             // Configurar intervalo de atualização
             setInterval(() => {
                 fetchPrices();
+                // Verificar se há mudança no vídeo ativo
+                loadActiveVideo();
             }, CONFIG.updateInterval);
         }
 

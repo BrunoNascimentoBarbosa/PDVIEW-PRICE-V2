@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Modal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <button id="btn-videos" class="btn-link">Trocar Vídeo</button>
+
+        <div class="modal" id="video-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Teste Modal</h2>
+                    <button id="btn-close-modal" class="btn-close">&times;</button>
+                </div>
+                <div class="modal-section">
+                    <p>Modal está funcionando!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn-videos').addEventListener('click', function() {
+            console.log('Botão clicado!');
+            document.getElementById('video-modal').style.display = 'flex';
+        });
+
+        document.getElementById('btn-close-modal').addEventListener('click', function() {
+            document.getElementById('video-modal').style.display = 'none';
+        });
+
+        console.log('Script carregado!');
+    </script>
+</body>
+</html>
