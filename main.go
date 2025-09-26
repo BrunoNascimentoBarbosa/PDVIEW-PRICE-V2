@@ -319,10 +319,56 @@ func handleActiveVideo(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func handleDeleteVideo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete && r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var selection VideoSelection
+	if err := json.NewDecoder(r.Body).Decode(&selection); err != nil {
+		http.Error(w, "Dados inválidos", http.StatusBadRequest)
+		return
+	}
+
+	// Não permitir excluir o vídeo base.mp4
+	if selection.VideoName == "base.mp4" {
+		http.Error(w, "Não é permitido excluir o vídeo base", http.StatusForbidden)
+		return
+	}
+
+	// Não permitir excluir o vídeo ativo
+	if selection.VideoName == activeVideo {
+		http.Error(w, "Não é permitido excluir o vídeo ativo. Selecione outro vídeo antes.", http.StatusForbidden)
+		return
+	}
+
+	// Verificar se o arquivo existe
+	videoPath := filepath.Join("./videos", selection.VideoName)
+	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
+		http.Error(w, "Vídeo não encontrado", http.StatusNotFound)
+		return
+	}
+
+	// Excluir o arquivo
+	if err := os.Remove(videoPath); err != nil {
+		log.Printf("Erro ao excluir vídeo %s: %v", selection.VideoName, err)
+		http.Error(w, "Erro ao excluir vídeo", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Vídeo %s excluído com sucesso", selection.VideoName)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": fmt.Sprintf("Vídeo %s excluído com sucesso", selection.VideoName),
+	})
+}
+
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		if r.Method == "OPTIONS" {
@@ -376,6 +422,7 @@ func main() {
 	mux.HandleFunc("/api/videos/select", enableCORS(handleSelectVideo))
 	mux.HandleFunc("/api/videos/upload", enableCORS(handleUploadVideo))
 	mux.HandleFunc("/api/videos/active", enableCORS(handleActiveVideo))
+	mux.HandleFunc("/api/videos/delete", enableCORS(handleDeleteVideo))
 
 	// Health check
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
