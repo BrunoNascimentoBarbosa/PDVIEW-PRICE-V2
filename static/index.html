@@ -763,10 +763,9 @@
                         try {
                             const response = await fetch('/api/videos/upload', {
                                 method: 'POST',
-                                body: formData,
-                                // Não definir Content-Type - deixar o browser definir automaticamente com boundary
-                                mode: 'cors',
-                                credentials: 'same-origin'
+                                body: formData
+                                // Removido mode e credentials para evitar conflitos
+                                // O browser irá gerenciar automaticamente
                             });
 
                             if (!response.ok) {

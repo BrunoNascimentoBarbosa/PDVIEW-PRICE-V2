@@ -264,12 +264,13 @@ func handleUploadVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log detalhado da requisição
-	log.Printf("Upload iniciado - User-Agent: %s, Content-Type: %s, Content-Length: %s",
-		r.UserAgent(), r.Header.Get("Content-Type"), r.Header.Get("Content-Length"))
+	// Log detalhado da requisição incluindo IP de origem
+	log.Printf("Upload iniciado - IP: %s, User-Agent: %s, Content-Type: %s, Content-Length: %s",
+		r.RemoteAddr, r.UserAgent(), r.Header.Get("Content-Type"), r.Header.Get("Content-Length"))
 
-	// Limitar tamanho do upload (100MB) e fazer parse
-	err := r.ParseMultipartForm(100 << 20)
+	// Configurar tamanho máximo de memória e fazer parse
+	r.Body = http.MaxBytesReader(w, r.Body, 100<<20) // 100MB
+	err := r.ParseMultipartForm(32 << 20) // 32MB em memória, resto em disco
 	if err != nil {
 		log.Printf("Erro ao fazer parse do formulário multipart: %v", err)
 		http.Error(w, "Erro ao processar formulário: "+err.Error(), http.StatusBadRequest)
@@ -385,10 +386,14 @@ func handleDeleteVideo(w http.ResponseWriter, r *http.Request) {
 
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Permitir qualquer origem (necessário para acesso via WiFi de diferentes dispositivos)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
+		// Para requisições OPTIONS (preflight), retornar sucesso imediatamente
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -456,13 +461,14 @@ func main() {
 	videoServer := http.FileServer(http.Dir("./videos/"))
 	mux.Handle("/videos/", http.StripPrefix("/videos/", videoServer))
 
-	// Configurar servidor com timeouts para Orange Pi
+	// Configurar servidor com timeouts otimizados para uploads via WiFi
 	server := &http.Server{
-		Addr:         "0.0.0.0:8080",
-		Handler:      loggingMiddleware(mux),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		Addr:              "0.0.0.0:8080",
+		Handler:           loggingMiddleware(mux),
+		ReadTimeout:       60 * time.Second,  // Aumentado para uploads grandes via WiFi
+		WriteTimeout:      60 * time.Second,  // Aumentado para uploads grandes via WiFi
+		IdleTimeout:       120 * time.Second, // Aumentado para conexões lentas
+		MaxHeaderBytes:    1 << 20,           // 1 MB para headers
 	}
 
 	port := ":8080"
