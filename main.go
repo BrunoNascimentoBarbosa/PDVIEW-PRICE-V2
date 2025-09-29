@@ -264,39 +264,57 @@ func handleUploadVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Limitar tamanho do upload (100MB)
-	r.ParseMultipartForm(100 << 20)
+	// Log detalhado da requisição
+	log.Printf("Upload iniciado - User-Agent: %s, Content-Type: %s, Content-Length: %s",
+		r.UserAgent(), r.Header.Get("Content-Type"), r.Header.Get("Content-Length"))
+
+	// Limitar tamanho do upload (100MB) e fazer parse
+	err := r.ParseMultipartForm(100 << 20)
+	if err != nil {
+		log.Printf("Erro ao fazer parse do formulário multipart: %v", err)
+		http.Error(w, "Erro ao processar formulário: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	file, handler, err := r.FormFile("video")
 	if err != nil {
-		http.Error(w, "Erro ao receber arquivo", http.StatusBadRequest)
+		log.Printf("Erro ao receber arquivo 'video': %v", err)
+		http.Error(w, "Erro ao receber arquivo: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	// Verificar extensão
-	ext := filepath.Ext(handler.Filename)
+	log.Printf("Arquivo recebido: %s (tamanho: %d bytes)", handler.Filename, handler.Size)
+
+	// Verificar extensão (case-insensitive)
+	ext := strings.ToLower(filepath.Ext(handler.Filename))
 	if ext != ".mp4" && ext != ".avi" && ext != ".mov" && ext != ".webm" {
-		http.Error(w, "Formato de vídeo não suportado", http.StatusBadRequest)
+		log.Printf("Formato de vídeo não suportado: %s", ext)
+		http.Error(w, "Formato de vídeo não suportado. Use MP4, AVI, MOV ou WEBM", http.StatusBadRequest)
 		return
 	}
 
 	// Criar arquivo de destino
-	dst, err := os.Create(filepath.Join("./videos", handler.Filename))
+	videoPath := filepath.Join("./videos", handler.Filename)
+	dst, err := os.Create(videoPath)
 	if err != nil {
-		http.Error(w, "Erro ao salvar arquivo", http.StatusInternalServerError)
+		log.Printf("Erro ao criar arquivo de destino %s: %v", videoPath, err)
+		http.Error(w, "Erro ao salvar arquivo no servidor", http.StatusInternalServerError)
 		return
 	}
 	defer dst.Close()
 
-	// Copiar arquivo
-	_, err = io.Copy(dst, file)
+	// Copiar arquivo com buffer para melhor performance
+	written, err := io.Copy(dst, file)
 	if err != nil {
-		http.Error(w, "Erro ao salvar arquivo", http.StatusInternalServerError)
+		log.Printf("Erro ao copiar arquivo: %v", err)
+		// Tentar remover arquivo parcialmente salvo
+		os.Remove(videoPath)
+		http.Error(w, "Erro ao salvar arquivo completo", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Vídeo enviado com sucesso: %s", handler.Filename)
+	log.Printf("Vídeo enviado com sucesso: %s (%.2f MB)", handler.Filename, float64(written)/(1024*1024))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{

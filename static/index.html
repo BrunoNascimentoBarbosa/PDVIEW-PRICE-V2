@@ -486,8 +486,8 @@
                     <div class="modal-section">
                         <h3>Enviar Novo Vídeo</h3>
                         <form id="upload-form" enctype="multipart/form-data">
-                            <div class="upload-area">
-                                <input type="file" id="video-file" name="video" accept="video/*" required>
+                            <div class="upload-area" id="upload-area">
+                                <input type="file" id="video-file" name="video" accept="video/mp4,video/avi,video/mov,video/webm,video/quicktime,.mp4,.avi,.mov,.webm,.MP4,.AVI,.MOV,.WEBM" required>
                                 <label for="video-file" class="upload-label">
                                     <span>Clique para selecionar ou arraste o vídeo aqui</span>
                                     <small>Formatos suportados: MP4, AVI, MOV, WEBM (máx. 100MB)</small>
@@ -735,7 +735,7 @@
                 // Upload de vídeo
                 const uploadForm = document.getElementById('upload-form');
                 if (uploadForm) {
-                    uploadForm.addEventListener('submit', function(e) {
+                    uploadForm.addEventListener('submit', async function(e) {
                         e.preventDefault();
 
                         const fileInput = document.getElementById('video-file');
@@ -760,24 +760,132 @@
                         uploadText.textContent = 'Enviando...';
                         uploadBtn.disabled = true;
 
-                        fetch('/api/videos/upload', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            alert('Vídeo enviado com sucesso!');
+                        try {
+                            const response = await fetch('/api/videos/upload', {
+                                method: 'POST',
+                                body: formData,
+                                // Não definir Content-Type - deixar o browser definir automaticamente com boundary
+                                mode: 'cors',
+                                credentials: 'same-origin'
+                            });
+
+                            if (!response.ok) {
+                                const errorText = await response.text();
+                                throw new Error(errorText || `Erro HTTP: ${response.status}`);
+                            }
+
+                            const data = await response.json();
+
+                            // Mostrar mensagem de sucesso
+                            const successMsg = document.createElement('div');
+                            successMsg.style.cssText = `
+                                position: fixed;
+                                top: 20px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                background: #10b981;
+                                color: white;
+                                padding: 15px 30px;
+                                border-radius: 8px;
+                                font-weight: 500;
+                                z-index: 10000;
+                                animation: slideDown 0.3s ease;
+                            `;
+                            successMsg.textContent = '✓ Vídeo enviado com sucesso!';
+                            document.body.appendChild(successMsg);
+
                             uploadForm.reset();
-                            window.location.reload(); // Recarregar para atualizar lista
-                        })
-                        .catch(error => {
+
+                            // Recarregar após 1.5 segundos
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } catch (error) {
                             console.error('Erro ao enviar vídeo:', error);
-                            alert('Erro ao enviar vídeo');
-                        })
-                        .finally(() => {
+
+                            // Mensagem de erro mais detalhada
+                            let errorMessage = 'Erro ao enviar vídeo';
+                            if (error.message) {
+                                errorMessage += ': ' + error.message;
+                            }
+
+                            // Verificar se é erro de rede
+                            if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                                errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+                            }
+
+                            alert(errorMessage);
+
                             uploadText.textContent = 'Enviar Vídeo';
                             uploadBtn.disabled = false;
-                        });
+                        }
+                    });
+                }
+
+                // Adicionar suporte para drag & drop
+                const uploadArea = document.getElementById('upload-area');
+                const fileInput = document.getElementById('video-file');
+
+                if (uploadArea && fileInput) {
+                    // Prevenir comportamento padrão do navegador
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        uploadArea.addEventListener(eventName, preventDefaults, false);
+                        document.body.addEventListener(eventName, preventDefaults, false);
+                    });
+
+                    function preventDefaults(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    // Adicionar feedback visual
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        uploadArea.addEventListener(eventName, highlight, false);
+                    });
+
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        uploadArea.addEventListener(eventName, unhighlight, false);
+                    });
+
+                    function highlight(e) {
+                        uploadArea.classList.add('dragover');
+                    }
+
+                    function unhighlight(e) {
+                        uploadArea.classList.remove('dragover');
+                    }
+
+                    // Lidar com arquivo dropado
+                    uploadArea.addEventListener('drop', handleDrop, false);
+
+                    function handleDrop(e) {
+                        const dt = e.dataTransfer;
+                        const files = dt.files;
+
+                        if (files.length > 0) {
+                            // Definir o arquivo no input
+                            fileInput.files = files;
+
+                            // Atualizar label
+                            const fileName = files[0].name;
+                            const fileSize = (files[0].size / (1024 * 1024)).toFixed(2);
+                            const uploadLabel = uploadArea.querySelector('.upload-label span');
+                            if (uploadLabel) {
+                                uploadLabel.textContent = `Arquivo selecionado: ${fileName} (${fileSize} MB)`;
+                            }
+                        }
+                    }
+
+                    // Atualizar label quando arquivo for selecionado pelo input
+                    fileInput.addEventListener('change', function() {
+                        if (this.files && this.files.length > 0) {
+                            const fileName = this.files[0].name;
+                            const fileSize = (this.files[0].size / (1024 * 1024)).toFixed(2);
+                            const uploadLabel = uploadArea.querySelector('.upload-label span');
+                            if (uploadLabel) {
+                                uploadLabel.textContent = `Arquivo selecionado: ${fileName} (${fileSize} MB)`;
+                            }
+                        }
                     });
                 }
 
