@@ -2,24 +2,7 @@
 
 Sistema ultra-leve e otimizado para exibir preços de combustíveis em Orange Pi, Raspberry Pi e similares.
 
-## ⚡ INSTALAÇÃO SUPER FÁCIL - 1 COMANDO APENAS!
-
-**Para usuários leigos - Cole no terminal do Orange Pi:**
-
-```bash
-curl -sSL https://raw.githubusercontent.com/BrunoNascimentoBarbosa/PDVIEW-PRICE-V2/main/setup.sh | bash
-```
-
-**✨ Pronto! O script instala tudo automaticamente:**
-- ✅ Dependências do sistema
-- ✅ Go (linguagem de programação)
-- ✅ Projeto completo
-- ✅ Configuração de serviço
-- ✅ Inicialização automática
-
 **📖 [Ver guia detalhado de instalação](INSTALACAO.md)**
-
----
 
 ## 🚀 Características
 
@@ -28,7 +11,6 @@ curl -sSL https://raw.githubusercontent.com/BrunoNascimentoBarbosa/PDVIEW-PRICE-
 - **Video Loop Estável**: Sem travamentos ARM
 - **Interface Responsiva**: Admin + Player
 - **Auto-restart**: Recuperação automática
-- **Instalação 1-click**: Script automatizado
 
 ## 📱 Como Usar Após Instalação
 
@@ -211,15 +193,6 @@ cat /sys/class/thermal/thermal_zone0/temp  # Orange Pi
 # Use perfil "Ultra Leve" na otimização de vídeo
 ```
 
-## 📊 Comparação com Sistema Anterior
-
-| Métrica | Sistema Antigo | PDVIEW Orange | Melhoria |
-|---------|---------------|---------------|----------|
-| RAM | ~80MB | ~10MB | 87.5% ↓ |
-| CPU Idle | 15% | 5% | 66% ↓ |
-| Tempo Boot | ~30s | <2s | 93% ↓ |
-| Dependências | Python + Node.js | Go (binário único) | 90% ↓ |
-| Tamanho | ~150MB | ~15MB | 90% ↓ |
 
 ## 🔄 Atualizações
 
@@ -234,32 +207,6 @@ scp pdview-arm64 pi@<IP>:/home/pi/pdview/pdview
 # No Orange Pi
 sudo systemctl restart pdview
 ```
-
-## 📝 Licença
-
-MIT License - Veja LICENSE para detalhes
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📞 Suporte
-
-- Issues: [GitHub Issues](https://github.com/seu-usuario/pdview-orange/issues)
-- Email: seu-email@exemplo.com
-
-## ✨ Melhorias Futuras
-
-- [ ] WebSocket para atualizações em tempo real
-- [ ] Suporte a múltiplos displays
-- [ ] App mobile para controle remoto
-- [ ] Dashboard com estatísticas
-- [ ] Backup automático na nuvem
-- [ ] Suporte a mais tipos de combustível
 
 ---
 
