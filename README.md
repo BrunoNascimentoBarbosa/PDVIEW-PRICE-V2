@@ -2,43 +2,100 @@
 
 Sistema ultra-leve e otimizado para exibir preços de combustíveis em Orange Pi, Raspberry Pi e similares.
 
-## 📦 Instalação no Orange Pi
+## 📦 Instalação Completa no Orange Pi
 
-### Pré-requisitos (primeira instalação)
+### 1️⃣ Instalar Dependências do Sistema
 
 ```bash
-# 1. Atualizar o sistema
+# Atualizar sistema
 sudo apt update && sudo apt upgrade -y
 
-# 2. Instalar Go (linguagem de programação)
+# Instalar dependências essenciais
+sudo apt install -y git curl wget build-essential ffmpeg
+
+# Instalar SQLite (para banco de dados)
+sudo apt install -y sqlite3 libsqlite3-dev
+```
+
+### 2️⃣ Instalar Go Language
+
+```bash
+# Baixar Go para ARM64
 wget https://go.dev/dl/go1.21.5.linux-arm64.tar.gz
+
+# Extrair para /usr/local
 sudo tar -C /usr/local -xzf go1.21.5.linux-arm64.tar.gz
 
-# 3. Configurar variáveis de ambiente
+# Configurar PATH
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
 source ~/.bashrc
 
-# 4. Verificar instalação do Go
+# Verificar instalação
 go version
+# Deve mostrar: go version go1.21.5 linux/arm64
+```
 
-# 5. Instalar Git (se não tiver)
-sudo apt install git -y
+### 3️⃣ Clonar e Configurar o Projeto
 
-# 6. Instalar FFmpeg (para processamento de vídeo)
-sudo apt install ffmpeg -y
-
-# 7. Clonar o projeto
-git clone https://github.com/seu-usuario/pdview-orange.git ~/pdview
+```bash
+# Clonar repositório
+git clone https://github.com/BrunoNascimentoBarbosa/PDVIEW-PRICE-V2.git ~/pdview
 cd ~/pdview
 
-# 8. Instalar dependências do Go
-go mod download
+# Criar pastas necessárias
+mkdir -p videos data
 
-# 9. Testar se tudo está funcionando
+# Baixar dependências do Go
+go mod init pdview-orange  # Se não existir go.mod
+go get github.com/gorilla/mux
+go get github.com/mattn/go-sqlite3
+go mod tidy
+```
+
+### 4️⃣ Executar o Projeto
+
+```bash
+# Navegar até o projeto
+cd ~/pdview
+
+# Rodar o servidor
+go run main.go
+
+# Ou compilar e executar
+go build -o pdview main.go
+./pdview
+```
+
+### 5️⃣ Verificar Funcionamento
+
+```bash
+# Em outro terminal, testar a API
+curl http://localhost:8080/api/prices
+
+# Ou acessar no navegador
+# http://IP-DO-ORANGE-PI:8080
+```
+
+### 🚀 Início Rápido (Comandos Sequenciais)
+
+```bash
+# Copie e cole tudo de uma vez:
+sudo apt update && sudo apt upgrade -y && \
+sudo apt install -y git curl wget build-essential ffmpeg sqlite3 libsqlite3-dev && \
+wget https://go.dev/dl/go1.21.5.linux-arm64.tar.gz && \
+sudo tar -C /usr/local -xzf go1.21.5.linux-arm64.tar.gz && \
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && \
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc && \
+source ~/.bashrc && \
+git clone https://github.com/BrunoNascimentoBarbosa/PDVIEW-PRICE-V2.git ~/pdview && \
+cd ~/pdview && \
+mkdir -p videos data && \
+go mod tidy && \
 go run main.go
 ```
 
-Após a instalação, acesse `http://IP-DO-ORANGE-PI:8080` no navegador.
+Após executar, acesse `http://IP-DO-ORANGE-PI:8080` no navegador.
 
 
 ## 🚀 Características
