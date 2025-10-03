@@ -2,7 +2,44 @@
 
 Sistema ultra-leve e otimizado para exibir preços de combustíveis em Orange Pi, Raspberry Pi e similares.
 
-**📖 [Ver guia detalhado de instalação](INSTALACAO.md)**
+## 📦 Instalação no Orange Pi
+
+### Pré-requisitos (primeira instalação)
+
+```bash
+# 1. Atualizar o sistema
+sudo apt update && sudo apt upgrade -y
+
+# 2. Instalar Go (linguagem de programação)
+wget https://go.dev/dl/go1.21.5.linux-arm64.tar.gz
+sudo tar -C /usr/local -xzf go1.21.5.linux-arm64.tar.gz
+
+# 3. Configurar variáveis de ambiente
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+source ~/.bashrc
+
+# 4. Verificar instalação do Go
+go version
+
+# 5. Instalar Git (se não tiver)
+sudo apt install git -y
+
+# 6. Instalar FFmpeg (para processamento de vídeo)
+sudo apt install ffmpeg -y
+
+# 7. Clonar o projeto
+git clone https://github.com/seu-usuario/pdview-orange.git ~/pdview
+cd ~/pdview
+
+# 8. Instalar dependências do Go
+go mod download
+
+# 9. Testar se tudo está funcionando
+go run main.go
+```
+
+Após a instalação, acesse `http://IP-DO-ORANGE-PI:8080` no navegador.
+
 
 ## 🚀 Características
 
@@ -16,19 +53,18 @@ Sistema ultra-leve e otimizado para exibir preços de combustíveis em Orange Pi
 
 1. **Acesse a interface**: `http://IP-DO-ORANGE-PI:8080`
 2. **Configure preços** de Etanol e Gasolina
-3. **Visualize no player**: `/player.html`
+3. **Visualize no player**: `http://IP-DO-ORANGE-PI/player.html`
 
 ## 🎛️ Controle do Sistema
 
 ```bash
+# Navegar até a pasta do projeto
 cd ~/pdview
 
-./control.sh start     # Iniciar
-./control.sh stop      # Parar
-./control.sh restart   # Reiniciar
-./control.sh status    # Ver status
-./control.sh logs      # Ver logs
-./control.sh update    # Atualizar versão
+# Iniciar o servidor
+go run main.go
+
+# Para parar o servidor: Ctrl+C
 ```
 
 ## 🎥 Preparação de Vídeos
@@ -50,7 +86,7 @@ scp videos/base.mp4 pi@<IP>:/home/pi/pdview/videos/
 ### Acessar o Sistema
 
 - **Interface Admin**: `http://<IP-ORANGE-PI>:8080`
-- **Player**: `http://<IP-ORANGE-PI>:8080/player.html`
+- **Player que deve ser enviado para TB40 usando o programa Viplex Express no windows**: `http://<IP-ORANGE-PI>:8080/player.html`
 
 ### Comandos de Controle
 
